@@ -3,6 +3,7 @@ import re
 
 
 # open file https://www.w3schools.com/python/python_file_open.asp (file reading also from this source)
+# f = open("sample_mda_autoreboot_2_20052021.ts.txt", "r")
 f = open("comcast_multiple_esavms.txt", "r")
 # open new file to write https://python-adv-web-apps.readthedocs.io/en/latest/csv.html#:~:text=files%20with%20Python.-,The%20csv%20module%20in%20Python,any%20script%20that%20uses%20it.&text=Note%20that%20using%20methods%20from,Reading%20and%20Writing%20Files%20here.
 csvfile = open('protocol_statistics.csv', 'w', newline='', encoding='utf-8')
@@ -30,64 +31,61 @@ def get_data():
     # read line from file
     line = f.readline()
 
-    # # if no esa or snip found in the line, stop data extraction
-    if (re.search("esa-[0-9]/[0-9]", line) == None) and ("<snip>" not in line):
-      done = True
-       # if (re.search("[0-9]/[0-9]", line) == None) and ("<snip>" not in line):
-          #   done = True
+    if("tmd:" not in line):
+      # # if no esa or snip found in the line, stop data extraction
+      if(re.search("esa-[0-9]/[0-9]|[0-9]/[0-9]", line) == None) and ("<snip>" not in line):
+        done = True
+      # if data extraction hasn't started...
+      elif(start == False): 
+        # if line contains the string from https://realpython.com/python-string-contains-substring/
+        if("Application-Assurance Protocol Statistics" in line):
+          data_sec = [[]]
+          # skip non-data line
+          f.readline()
+          line = f.readline()
+          # set dictionary key as esa-...
+          d_key = re.findall("esa-[0-9]/[0-9]|[0-9]/[0-9]", line)[0]
+          # get rid of unwanted characters
+          line = line.replace(d_key + ":   ", "")
+          line = line.replace("\"", "")
+          # remove extra line space https://www.w3schools.com/python/ref_string_rstrip.asp
+          line = line.strip()
+          # assign the heading, split function from: https://www.w3schools.com/python/ref_string_split.asp
+          data_line = line.split(",")
+          # insert line of data into data section https://www.javatpoint.com/python-2d-array#:~:text=Insert%20elements%20in%20a%202D,and%20location%20to%20be%20inserted.&text=%23%20Write%20a%20program%20to%20insert,two%20dimensional)%20array%20of%20Python.
+          data_sec.insert(0, data_line)
+          # get rid of extra item in list
+          data_sec.pop()
+          # write on the CSV file
+          c.writerow(data_line)
+          rows += 1
+          start = True
 
-    # if data extraction hasn't started...
-    elif(start == False): # and line contains esa
-      # if line contains the string from https://realpython.com/python-string-contains-substring/
-      if("Application-Assurance Protocol Statistics" in line):
-        data_sec = [[]]
-        # skip non-data line
-        f.readline()
-        line = f.readline()
-        # set dictionary key as esa-...
-        d_key = re.findall("esa-[0-9]/[0-9]", line)[0]
-        # d_key = re.findall("[0-9]/[0-9]", line)[0]
-        # get rid of unwanted characters
-        line = line.replace(d_key + ":   ", "")
-        line = line.replace("\"", "")
-        # remove extra line space https://www.w3schools.com/python/ref_string_rstrip.asp
-        line = line.strip()
-        # assign the heading, split function from: https://www.w3schools.com/python/ref_string_split.asp
-        data_line = line.split(",")
-        # insert line of data into data section https://www.javatpoint.com/python-2d-array#:~:text=Insert%20elements%20in%20a%202D,and%20location%20to%20be%20inserted.&text=%23%20Write%20a%20program%20to%20insert,two%20dimensional)%20array%20of%20Python.
-        data_sec.insert(0, data_line)
-        # get rid of extra item in list
-        data_sec.pop()
-        # write on the CSV file
-        c.writerow(data_line)
-        rows += 1
-        start = True
-
-      # if data extraction started...
-    else:
-      if("===============================================================================" in line):
-        data_sec.pop()
-        # add data to the dictionary https://www.programiz.com/python-programming/methods/dictionary/update
-        p_dict.update({d_key:data_sec})
-        # separate data in csv file
-        c.writerow("")
-        start = False
-
-      # otherwise, keep adding to current data set
+        # if data extraction started...
       else:
-        line = line.replace(d_key + ":   ", "")
-        line = line.replace("\"", "")
-        line = line.strip()
-        data_line = line.split(",")
-        # add line of data to array
-        data_sec.insert(rows, data_line)
-        c.writerow(data_line)
-        rows += 1
+        if("===============================================================================" in line):
+          data_sec.pop()
+          # add data to the dictionary https://www.programiz.com/python-programming/methods/dictionary/update
+          p_dict.update({d_key:data_sec})
+          # separate data in csv file
+          c.writerow("")
+          start = False
+
+        # otherwise, keep adding to current data set
+        else:
+          line = line.replace(d_key + ":   ", "")
+          line = line.replace("\"", "")
+          line = line.strip()
+          data_line = line.split(",")
+          # add line of data to array
+          data_sec.insert(rows, data_line)
+          c.writerow(data_line)
+          rows += 1
 
   return p_dict
 
 p_d = get_data()
-# print(p_d)
+print(p_d)
 
 
 # find totals of each data type
@@ -140,7 +138,7 @@ def get_totals(p_d):
   return t_dict
 
 t_d = get_totals(p_d)
-print(t_d)
+# print(t_d)
 
 
 
