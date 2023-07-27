@@ -85,7 +85,6 @@ def get_data():
   return p_dict
 
 p_d = get_data()
-print(p_d)
 
 
 # find totals of each data type
@@ -138,9 +137,28 @@ def get_totals(p_d):
   return t_dict
 
 t_d = get_totals(p_d)
-# print(t_d)
 
+#user input
+exit = False
 
+while(exit == False):
+  print("What would you like to do?")
+  print("1. Get data")
+  print("2. Get totals from data")
+  print("3. Exit")
+  command = input("Your choice: ")
+
+  while((command != "1") and (command != "2") and (command != "3")):
+    command = input("Your choice: ")
+
+  if(command == "1"):
+    print(p_d)
+    print()
+  elif(command == "2"):
+    print(t_d)
+    print()
+  else:
+    exit = True
 
 
 # for j in range(len(total_line)):
