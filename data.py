@@ -31,7 +31,7 @@ def get_data():
   # section of data
   data_sec = [[]]
   data_line = []
-  guard_counter = 878
+  guard_counter = 1291
   rows = 0
   count = 0
      
@@ -44,7 +44,7 @@ def get_data():
     if("tmd:" not in line):
       # # if no esa or snip found in the line, stop data extraction
       if(re.search("esa-[0-9]/[0-9]|[0-9]/[0-9]", line) == None) and ("<snip>" not in line) or (guard_counter == 0):
-        a_dict.update({next_key:g_dict})
+        a_dict.update({o_key:g_dict})
         done = True
       # if data extraction hasn't started...
       elif(start == False): 
