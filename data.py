@@ -20,20 +20,22 @@ def get_data():
   p_dict = {}
   # dictionary storing application stats
   a_dict = {}
-  a_stats = False
   # dictionary storing all groups
   g_dict = {}
   group = ""
-  # key of dictionary
+  # original section key (for if there's only one key in file)
   o_key = ""
-  next_key = ""
+  # most recent line's key
+  new_key = ""
+  # if looking for application stats
+  a_stats = False
+  # if looking for a new key
   find_new_key = False
   # section of data
   data_sec = [[]]
   data_line = []
   guard_counter = 1291
   rows = 0
-  count = 0
      
   # while data not done extracting...
   while(done == False and guard_counter != 0):
@@ -44,6 +46,7 @@ def get_data():
     if("tmd:" not in line):
       # # if no esa or snip found in the line, stop data extraction
       if(re.search("esa-[0-9]/[0-9]|[0-9]/[0-9]", line) == None) and ("<snip>" not in line) or (guard_counter == 0):
+        # when done extracting, update dictionary with original section's key
         a_dict.update({o_key:g_dict})
         done = True
       # if data extraction hasn't started...
@@ -61,9 +64,10 @@ def get_data():
           f.readline()
           line = f.readline()
 
+          # if finding new key...
           if(find_new_key == True):
-            next_key = re.findall("esa-[0-9]/[0-9]|[0-9]/[0-9]", line)[0]
-            line = line.replace(next_key + ":   ", "")
+            new_key = re.findall("esa-[0-9]/[0-9]|[0-9]/[0-9]", line)[0]
+            line = line.replace(new_key + ":   ", "")
           else:
             # set dictionary key as esa-...
             o_key = re.findall("esa-[0-9]/[0-9]|[0-9]/[0-9]", line)[0]
@@ -86,18 +90,19 @@ def get_data():
         # if data extraction started...
       else:
         if("===============================================================================" in line):
-          data_sec.pop()
-          # add data to the dictionary https://www.programiz.com/python-programming/methods/dictionary/update
+          # add data to the dictionaries https://www.programiz.com/python-programming/methods/dictionary/update
+          # if looking for application stats...
           if(a_stats == True):
-            if(next_key != o_key):
+            if(new_key != o_key):
               a_dict.update({o_key:g_dict})
               g_dict = {}
-              o_key = next_key
-            # print(a_dict)
+              o_key = new_key
             g_dict.update({group:data_sec})
+          # if looking for protocol stats...
           else:
             if(find_new_key == True):
-              p_dict.update({next_key:data_sec})
+              p_dict.update({new_key:data_sec})
+            # if no new key found, update by original key
             else:
               p_dict.update({o_key:data_sec})
           # separate data in csv file
@@ -108,7 +113,7 @@ def get_data():
         # otherwise, keep adding to current data set
         else:
           if(find_new_key == True):
-            line = line.replace(next_key + ":   ", "")
+            line = line.replace(new_key + ":   ", "")
           else:
             line = line.replace(o_key + ":   ", "")
           line = line.replace("\"", "")
@@ -122,61 +127,117 @@ def get_data():
   return p_dict, a_dict
 
 p_d, a_d = get_data()
-print(p_d)
+# print(p_d)
 # print(a_d)
 
 
 # find totals of each data type
-def get_totals(p_d):
-  pd = p_d
-  # dictionary storing totals of data
-  t_dict = {}
+def get_totals(p_d, a_d):
+  # dictionary storing protocol totals
+  tp_dict = {}
   p_keys = []
   p_values = []
-  sec_values = []
+  # protocols section's keys and values
+  psec_key = ""
+  psec_values = []
   t_header = []
-  totals = []
+  p_totals = []
   zeros = []
 
-  # list of all keys in dictionary
-  p_keys = list(pd.keys())
-  # list of all values in dictionary
-  p_values = list(pd.values())
+  # list of protocol keys
+  p_keys = list(p_d.keys())
+  # list of protocol values
+  p_values = list(p_d.values())
 
+  # protocol stats totals  
   # for every key...
   for i in range(len(p_keys)):
-    sec_key = p_keys[i]
-    sec_values = p_values[i]
+    psec_key = p_keys[i]
+    psec_values = p_values[i]
 
     # get rid of name for header
-    sec_values[0].pop(0)
-    t_header = sec_values[0]
-    totals.insert(0, t_header)
+    psec_values[0].pop(0)
+    t_header = psec_values[0]
+    p_totals.insert(0, t_header)
     # get rid of headers from data
-    sec_values.pop(0)
+    psec_values.pop(0)
     # get rid of names from data
-    for j in range(len(sec_values)):
-      sec_values[j].pop(0)
+    for j in range(len(psec_values)):
+      psec_values[j].pop(0)
    
     # initialize totals with zeros
     for k in range(len(t_header)):
       zeros.append(0)
-    totals.insert(1, zeros)
+    p_totals.insert(1, zeros)
    
     # for each row of values...
-    for l in range(len(sec_values)):
+    for l in range(len(psec_values)):
       # for each column within the row...
-      for m in range(len(sec_values[l])):
-        totals[1][m] += int(sec_values[l][m])
+      for m in range(len(psec_values[l])):
+        p_totals[1][m] += int(psec_values[l][m])
    
-    t_dict.update({sec_key:totals})
-    totals = []
+    tp_dict.update({psec_key:p_totals})
+    p_totals = []
     zeros = []
 
-  return t_dict
 
-t_d = get_totals(p_d)
+  # dictionary storing application totals
+  ta_dict = {}
+  # list of each keys' groups with their data sections
+  a_keys = list(a_d.values())
+  a_keygroups = a_keys[0]
+  num_groups = len(a_keygroups)
+  a_totals = []
+  # print(a_keygroups)
 
+  #application stats totals
+  # for number of groups...
+  for m in range(num_groups):
+    # for every key...
+    for n in range(len(a_keys)):
+      # get each individual keys' groups
+      a_keygroups = a_keys[n]
+      # print(a_keygroups)
+      # # for every group in each key...
+      # for n in range(len(a_keygroups)):
+      # get group
+      a_groupkey = list(a_keygroups.keys())[m]
+      # get each groups' values
+      a_groupvalues = list(a_keygroups.values())[m]
+      # get rid of name for header
+      a_groupvalues[0].pop(0)
+      t_header = a_groupvalues[0]
+      if(n == 0):
+        # add header to totals
+        a_totals.insert(0, t_header)
+        # initialize totals with zeros
+        for o in range(len(t_header)):
+          zeros.append(0)
+        a_totals.insert(1, zeros)
+      # get rid of headers
+      a_groupvalues.pop(0)
+      # get rid of names from data
+      for p in range(len(a_groupvalues)):
+        a_groupvalues[p].pop(0)
+
+      # for every row of data...
+      for q in range(len(a_groupvalues)):
+        # for every piece of data within the row...
+        for r in range(len(a_groupvalues[q])):
+          a_totals[1][r] += int(a_groupvalues[q][r])
+
+    ta_dict.update({a_groupkey:a_totals})
+    # print(ta_dict)
+    a_totals = []
+    zeros = []
+
+
+  print(ta_dict)
+  return tp_dict
+
+tp_d = get_totals(p_d, a_d)
+# print(tp_d)
+# print(tp_d)
 #user input
 # exit = False
 
