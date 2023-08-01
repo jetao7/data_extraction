@@ -34,7 +34,7 @@ def get_data():
   # section of data
   data_sec = [[]]
   data_line = []
-  guard_counter = 1291
+  guard_counter = 1000000000000000000
   rows = 0
      
   # while data not done extracting...
@@ -131,8 +131,8 @@ p_d, a_d = get_data()
 # print(a_d)
 
 
-# find totals of each data type
-def get_totals(p_d, a_d):
+# find protocol stats totals
+def get_ptotals(p_d):
   # dictionary storing protocol totals
   tp_dict = {}
   p_keys = []
@@ -179,27 +179,32 @@ def get_totals(p_d, a_d):
     tp_dict.update({psec_key:p_totals})
     p_totals = []
     zeros = []
+  
+  return tp_dict
+
+tp_d = get_ptotals(p_d)
+# print(tp_d)
 
 
+# find application stats totals
+def get_atotals(a_d):
   # dictionary storing application totals
   ta_dict = {}
   # list of each keys' groups with their data sections
   a_keys = list(a_d.values())
+  # take 1st keys' groups to find num of groups 
   a_keygroups = a_keys[0]
   num_groups = len(a_keygroups)
+  zeros = []
+  # application stats totals
   a_totals = []
-  # print(a_keygroups)
 
-  #application stats totals
-  # for number of groups...
+  # loop thorugh each of the same groups
   for m in range(num_groups):
     # for every key...
     for n in range(len(a_keys)):
-      # get each individual keys' groups
+      # get current keys' groups
       a_keygroups = a_keys[n]
-      # print(a_keygroups)
-      # # for every group in each key...
-      # for n in range(len(a_keygroups)):
       # get group
       a_groupkey = list(a_keygroups.keys())[m]
       # get each groups' values
@@ -227,17 +232,15 @@ def get_totals(p_d, a_d):
           a_totals[1][r] += int(a_groupvalues[q][r])
 
     ta_dict.update({a_groupkey:a_totals})
-    # print(ta_dict)
     a_totals = []
     zeros = []
 
+  return ta_dict
 
-  print(ta_dict)
-  return tp_dict
+ta_d = get_atotals(a_d)
+# print(ta_d)
 
-tp_d = get_totals(p_d, a_d)
-# print(tp_d)
-# print(tp_d)
+
 #user input
 # exit = False
 
