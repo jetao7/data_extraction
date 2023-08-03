@@ -34,7 +34,7 @@ def get_data():
   # section of data
   data_sec = [[]]
   data_line = []
-  guard_counter = 1000000000000000000
+  guard_counter = 878
   rows = 0
      
   # while data not done extracting...
@@ -140,6 +140,8 @@ def get_ptotals(p_d):
   # protocols section's keys and values
   psec_key = ""
   psec_values = []
+  psec_names = []
+  current_name = ""
   t_header = []
   p_totals = []
   zeros = []
@@ -155,35 +157,48 @@ def get_ptotals(p_d):
     psec_key = p_keys[i]
     psec_values = p_values[i]
 
-    # get rid of name for header
-    psec_values[0].pop(0)
     t_header = psec_values[0]
-    p_totals.insert(0, t_header)
+    # if 1st time, add header to totals
+    if(i == 0):
+      p_totals.insert(0, t_header)
     # get rid of headers from data
     psec_values.pop(0)
-    # get rid of names from data
-    for j in range(len(psec_values)):
-      psec_values[j].pop(0)
-   
-    # initialize totals with zeros
-    for k in range(len(t_header)):
-      zeros.append(0)
-    p_totals.insert(1, zeros)
-   
-    # for each row of values...
-    for l in range(len(psec_values)):
-      # for each column within the row...
-      for m in range(len(psec_values[l])):
-        p_totals[1][m] += int(psec_values[l][m])
-   
-    tp_dict.update({psec_key:p_totals})
-    p_totals = []
-    zeros = []
-  
-  return tp_dict
 
-tp_d = get_ptotals(p_d)
+    # for each row of values...
+    for j in range(len(psec_values)):
+      current_name = psec_values[j][0]
+      # if 1st key, add protocol names to list
+      if(i == 0):
+        # store current row's name
+        psec_names.append(current_name)
+
+      # if the protocol is not in the list and it's 1st key...
+      if(i == 0) or (current_name not in psec_names):
+        # initialize totals with zeros
+        # -1 for the name
+        for k in range(len(t_header) - 1):
+          zeros.append(0)
+        zeros.insert(0, current_name)
+        # +1 to skip header
+        p_totals.insert(j+1, zeros)
+
+      # for each column within the row...
+      for m in range(len(psec_values[j]) - 1):
+        # +1 to skip header and name
+        p_totals[j+1][m+1] += int(psec_values[j][m+1])
+
+      # if not 1st section and name was missing in prev section...
+      if(i != 0) and (current_name not in psec_names):
+        # add new name to list of occured names
+        psec_names.append(current_name)
+
+      zeros = []
+
+  return p_totals
+
+p_t = get_ptotals(p_d)
 # print(tp_d)
+print(p_t)
 
 
 # find application stats totals
