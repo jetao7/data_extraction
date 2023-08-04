@@ -34,7 +34,7 @@ def get_data():
   # section of data
   data_sec = [[]]
   data_line = []
-  guard_counter = 878
+  guard_counter = 1111
   rows = 0
      
   # while data not done extracting...
@@ -183,9 +183,9 @@ def get_ptotals(p_d):
         p_totals.insert(j+1, zeros)
 
       # for each column within the row...
-      for m in range(len(psec_values[j]) - 1):
+      for l in range(len(psec_values[j]) - 1):
         # +1 to skip header and name
-        p_totals[j+1][m+1] += int(psec_values[j][m+1])
+        p_totals[j+1][l+1] += int(psec_values[j][l+1])
 
       # if not 1st section and name was missing in prev section...
       if(i != 0) and (current_name not in psec_names):
@@ -198,7 +198,7 @@ def get_ptotals(p_d):
 
 p_t = get_ptotals(p_d)
 # print(tp_d)
-print(p_t)
+# print(p_t)
 
 
 # find application stats totals
@@ -210,6 +210,8 @@ def get_atotals(a_d):
   # take 1st keys' groups to find num of groups 
   a_keygroups = a_keys[0]
   num_groups = len(a_keygroups)
+  asec_names = []
+  current_name = ""
   zeros = []
   # application stats totals
   a_totals = []
@@ -224,37 +226,49 @@ def get_atotals(a_d):
       a_groupkey = list(a_keygroups.keys())[m]
       # get each groups' values
       a_groupvalues = list(a_keygroups.values())[m]
-      # get rid of name for header
-      a_groupvalues[0].pop(0)
+
       t_header = a_groupvalues[0]
       if(n == 0):
         # add header to totals
         a_totals.insert(0, t_header)
-        # initialize totals with zeros
-        for o in range(len(t_header)):
-          zeros.append(0)
-        a_totals.insert(1, zeros)
-      # get rid of headers
+      # get rid of headers from data
       a_groupvalues.pop(0)
-      # get rid of names from data
-      for p in range(len(a_groupvalues)):
-        a_groupvalues[p].pop(0)
 
       # for every row of data...
       for q in range(len(a_groupvalues)):
+        current_name = a_groupvalues[q][0]
+        # if looping through 1st key
+        if(n == 0):
+          asec_names.append(current_name)
+
+        if(n == 0) or (current_name not in asec_names):
+          # initialize totals with zeros
+          # -1 for the name
+          for o in range(len(t_header) - 1):
+            zeros.append(0)
+          zeros.insert(0, current_name)
+          # +1 to skip the header
+          a_totals.insert(q+1, zeros)
+        
         # for every piece of data within the row...
-        for r in range(len(a_groupvalues[q])):
-          a_totals[1][r] += int(a_groupvalues[q][r])
+        for r in range(len(a_groupvalues[q]) - 1):
+          # +1 to skip header and names
+          a_totals[q+1][r+1] += int(a_groupvalues[q][r+1])
+        
+        # if not 1st key and name was missing...
+        if(n != 0) and (current_name not in asec_names):
+          # add new name to previous list of names
+          asec_names.append(current_name)
+
+        zeros = []
 
     ta_dict.update({a_groupkey:a_totals})
     a_totals = []
-    zeros = []
 
   return ta_dict
 
 ta_d = get_atotals(a_d)
-# print(ta_d)
-
+print(ta_d)
 
 #user input
 # exit = False
@@ -277,15 +291,6 @@ ta_d = get_atotals(a_d)
 #     print()
 #   else:
 #     exit = True
-
-
-# for j in range(len(total_line)):
-#   totals[1][j] += int(total_line[j])
-# for i in range(len(total_line)):
-#           totals[1].insert(i, 0)
-
-
-
 
 # for j in range(rows):
 #   for k in range(columns):
