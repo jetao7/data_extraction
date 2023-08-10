@@ -1,6 +1,7 @@
 import csv
 import re
-import copy
+import sys
+import argparse
 
 
 # open file https://www.w3schools.com/python/python_file_open.asp (file reading also from this source)
@@ -130,7 +131,6 @@ p_d, a_d = get_data()
 # print(p_d)
 # print(a_d)
 
-
 # find protocol stats totals
 def get_ptotals(p_d):
   # dictionary storing protocol totals
@@ -172,7 +172,7 @@ def get_ptotals(p_d):
         # store current row's name
         psec_names.append(current_name)
 
-      # if the protocol is not in the list and it's 1st key...
+      # if the protocol is not in the list or it's 1st key...
       if(i == 0) or (current_name not in psec_names):
         # initialize totals with zeros
         # -1 for the name
@@ -197,8 +197,6 @@ def get_ptotals(p_d):
   return p_totals
 
 p_t = get_ptotals(p_d)
-# print(tp_d)
-# print(p_t)
 
 
 # find application stats totals
@@ -267,8 +265,56 @@ def get_atotals(a_d):
 
   return ta_dict
 
-ta_d = get_atotals(a_d)
-print(ta_d)
+a_t = get_atotals(a_d)
+
+# def get_top10():
+
+
+
+#command line input using argparse
+#https://www.geeksforgeeks.org/command-line-arguments-in-python/ and 
+#https://www.tutorialspoint.com/python/python_command_line_arguments.htm
+
+#help screen
+des = "ProtoAppWizard 1.0.0 Get summarized data from Protocol and Application Statistics"
+
+parser = argparse.ArgumentParser(description = des)
+# add option without argument: https://stackoverflow.com/questions/5262702/argparse-module-how-to-add-option-without-any-argument
+# adding optional arguments
+parser.add_argument("-p", "--proto", help = "show summarized Protocol data", action = "store_true")
+parser.add_argument("-a", "--app", help = "show summarized Application data by group or total", action = "store_true")
+# read arguments from commmand line
+args = parser.parse_args()
+
+if any(vars(args).values()):
+  if(args.proto):
+    print("PROTOCOL TOTALS")
+    print(p_t)
+  elif(args.app):
+    print("APPLICATION TOTALS")
+    print(a_t)
+else:
+  parser.print_help()
+
+
+# args = vars(args)
+# arg_value = args.values()
+# if(arg_value == "-p"):
+#   print(p_t)
+
+# if args.proto:
+#   print(p_t)
+# elif args.app:
+#   print(ta_d)
+
+# if(args.proto == None) and (args.app == None) and (args.help == )
+# print(args)
+
+
+
+#C:\Users\jetao\AppData\Local\Programs\Python\Python311\python.exe
+
+
 
 #user input
 # exit = False
