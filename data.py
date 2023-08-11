@@ -267,9 +267,54 @@ def get_atotals(a_d):
 
 a_t = get_atotals(a_d)
 
-# def get_top10():
+
+# get top 10 protocal and application stats
+def get_top10(p_t):
+  # top 10 protocols
+  top10 = []
+  # smallest num from top 10
+  s_num = 0
+
+  # take first 10 row of values
+  for s in range(1, 11):
+    # add sba and nba of each row
+    row_total = p_t[s][1] + p_t[s][7]
+    top10.append(row_total)
+
+  # for each of the remaining rows...
+  for t in range(12, len(p_t)):
+    row_total = p_t[t][1] + p_t[t][7]
+    # get smallest num from top10
+    s_num = min(top10)
+    if(row_total > s_num):
+      # take index of smallest num
+      # replace it with the row total
+      top10[top10.index(s_num)] = row_total
+      
+  return top10
+
+t_10 = get_top10(p_t)
 
 
+def get_percent(t_10):
+  # list of percents
+  p_list = []
+  # each value's percent
+  percent = 0.0
+  # sum of top 10's values
+  sum = 0
+  
+  # get sum
+  for u in range(len(t_10)):
+    sum += t_10[u]
+  
+  for v in range(len(t_10)):
+    percent = round(t_10[v]/sum*100, 2)
+    p_list.append(percent)
+  
+  return p_list
+
+t_10_p = get_percent(t_10)
 
 #command line input using argparse
 #https://www.geeksforgeeks.org/command-line-arguments-in-python/ and 
@@ -283,9 +328,11 @@ parser = argparse.ArgumentParser(description = des)
 # adding optional arguments
 parser.add_argument("-p", "--proto", help = "show summarized Protocol data", action = "store_true")
 parser.add_argument("-a", "--app", help = "show summarized Application data by group or total", action = "store_true")
+parser.add_argument("-t10p", "--top10proto",help = "show top 10 ", action = "store_true")
 # read arguments from commmand line
 args = parser.parse_args()
 
+# if any arguments are passed in
 if any(vars(args).values()):
   if(args.proto):
     print("PROTOCOL TOTALS")
@@ -293,61 +340,14 @@ if any(vars(args).values()):
   elif(args.app):
     print("APPLICATION TOTALS")
     print(a_t)
+  elif(args.top10proto):
+    print("TOP 10 PROTOCOL TOTALS")
+    print(t_10)
+    print("Percents:")
+    print(t_10_p)
 else:
+  # print the help menu again
   parser.print_help()
 
 
-# args = vars(args)
-# arg_value = args.values()
-# if(arg_value == "-p"):
-#   print(p_t)
-
-# if args.proto:
-#   print(p_t)
-# elif args.app:
-#   print(ta_d)
-
-# if(args.proto == None) and (args.app == None) and (args.help == )
-# print(args)
-
-
-
 #C:\Users\jetao\AppData\Local\Programs\Python\Python311\python.exe
-
-
-
-#user input
-# exit = False
-
-# while(exit == False):
-#   print("What would you like to do?")
-#   print("1. Get data")
-#   print("2. Get totals from data")
-#   print("3. Exit")
-#   command = input("Your choice: ")
-
-#   while((command != "1") and (command != "2") and (command != "3")):
-#     command = input("Your choice: ")
-
-#   if(command == "1"):
-#     print(p_d)
-#     print()
-#   elif(command == "2"):
-#     print(t_d)
-#     print()
-#   else:
-#     exit = True
-
-# for j in range(rows):
-#   for k in range(columns):
-#     print(data[j][k], end="")
-
-
-
-
-   
-       
-
-
- 
-
