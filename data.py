@@ -271,7 +271,13 @@ a_t = get_atotals(a_d)
 # get top 10 protocal and application stats
 def get_top10(p_t):
   # top 10 protocols
-  top10 = []
+  top10 = {}
+  #current row's total
+  row_total = 0
+  # each row's values
+  row_values = []
+  # each row's names
+  row_names = []
   # smallest num from top 10
   s_num = 0
 
@@ -279,23 +285,36 @@ def get_top10(p_t):
   for s in range(1, 11):
     # add sba and nba of each row
     row_total = p_t[s][1] + p_t[s][7]
-    top10.append(row_total)
+    row_name = p_t[s][0]
+    # add to values and names lists
+    row_values.append(row_total)
+    row_names.append(row_name)
 
   # for each of the remaining rows...
   for t in range(12, len(p_t)):
     row_total = p_t[t][1] + p_t[t][7]
+    row_name = p_t[t][0]
     # get smallest num from top10
-    s_num = min(top10)
+    s_num = min(row_values)
     if(row_total > s_num):
-      # take index of smallest num
-      # replace it with the row total
-      top10[top10.index(s_num)] = row_total
-      
+      # take index of smallest num 
+      # replace it with the row name and total
+      row_names[row_values.index(s_num)] = row_name
+      row_values[row_values.index(s_num)] = row_total
+  
+  # update dict with names paired with their values
+  for u in range(len(row_names)):
+    top10.update({row_names[u]:row_values[u]})
+
+  # sort by greatest to least: https://www.freecodecamp.org/news/sort-dictionary-by-value-in-python/
+  top10 = sorted(top10.items(), key=lambda x:x[1], reverse=True)
+
   return top10
 
 t_10 = get_top10(p_t)
 
 
+# get top 10 percents
 def get_percent(t_10):
   # list of percents
   p_list = []
@@ -306,15 +325,49 @@ def get_percent(t_10):
   
   # get sum
   for u in range(len(t_10)):
-    sum += t_10[u]
+    sum += t_10[u][1]
   
+  # get percents
   for v in range(len(t_10)):
-    percent = round(t_10[v]/sum*100, 2)
+    percent = round(t_10[v][1]/sum*100, 2)
     p_list.append(percent)
   
   return p_list
 
 t_10_p = get_percent(t_10)
+
+
+# get the top10 chart
+def get_chart(t_10_p, t_10):
+  # bar chart
+  chart = ""
+  chart_name = ""
+  # num stars to show in bar
+  num_stars = 0
+  # current percent
+  percent = ""
+  # add stars to each bar
+  count = 0
+  
+  # for every percent
+  for w in range(len(t_10_p)):
+    # increment by scale of 5
+    for x in range(0, 101, 5):
+      # if the % is < x...
+      if(t_10_p[w] < x):
+        num_stars = count
+        break
+      # add a star every increment of 5
+      count += 1
+    chart_name = t_10[w][0]
+    # add a bar to the chart
+    chart = "*" * num_stars
+    percent = str(t_10_p[w]) + "%"
+    # format chart to be vertically aligned: https://www.geeksforgeeks.org/string-alignment-in-python-f-string/
+    # print each row of the chart
+    print(f"{chart_name : <20}{chart : >15}{percent : >20}")
+    count = 0
+
 
 #command line input using argparse
 #https://www.geeksforgeeks.org/command-line-arguments-in-python/ and 
@@ -343,8 +396,12 @@ if any(vars(args).values()):
   elif(args.top10proto):
     print("TOP 10 PROTOCOL TOTALS")
     print(t_10)
-    print("Percents:")
+    print("")
+    print("PERCENTS")
     print(t_10_p)
+    print("")
+    print("CHART")
+    get_chart(t_10_p, t_10)
 else:
   # print the help menu again
   parser.print_help()
