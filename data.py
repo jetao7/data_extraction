@@ -207,6 +207,7 @@ def get_atotals(a_d):
   a_keys = list(a_d.values())
   # take 1st keys' groups to find num of groups 
   a_keygroups = a_keys[0]
+  a_groups = list(a_keygroups.keys())
   num_groups = len(a_keygroups)
   asec_names = []
   current_name = ""
@@ -263,15 +264,15 @@ def get_atotals(a_d):
     ta_dict.update({a_groupkey:a_totals})
     a_totals = []
 
-  return ta_dict
+  return ta_dict, a_groups
 
-a_t = get_atotals(a_d)
+a_t, a_g = get_atotals(a_d)
 
 
-# get top 10 protocal and application stats
-def get_top10(p_t):
+# get top 10 protocal stats
+def get_ptop10(p_t):
   # top 10 protocols
-  top10 = {}
+  ptop10 = {}
   #current row's total
   row_total = 0
   # each row's values
@@ -280,6 +281,8 @@ def get_top10(p_t):
   row_names = []
   # smallest num from top 10
   s_num = 0
+  # all other protocols totals together
+  p_rest = 0
 
   # take first 10 row of values
   for s in range(1, 11):
@@ -301,44 +304,183 @@ def get_top10(p_t):
       # replace it with the row name and total
       row_names[row_values.index(s_num)] = row_name
       row_values[row_values.index(s_num)] = row_total
+      # add replaced smallest num to rest
+      p_rest += s_num
+    else:
+      p_rest += (row_total)
   
   # update dict with names paired with their values
   for u in range(len(row_names)):
-    top10.update({row_names[u]:row_values[u]})
+    ptop10.update({row_names[u]:row_values[u]})
 
   # sort by greatest to least: https://www.freecodecamp.org/news/sort-dictionary-by-value-in-python/
-  top10 = sorted(top10.items(), key=lambda x:x[1], reverse=True)
+  ptop10 = sorted(ptop10.items(), key=lambda x:x[1], reverse=True)
 
-  return top10
+  # add rest of protocols to totals
+  ptop10.append(("rest", p_rest))
 
-t_10 = get_top10(p_t)
+  return ptop10
+
+pt_10 = get_ptop10(p_t)
 
 
-# get top 10 percents
-def get_percent(t_10):
-  # list of percents
-  p_list = []
+# get top 10 applications
+def get_atop10(a_t):
+  # top 10 
+  atop10 = {}
+  # current group's top10
+  gtop10 = {}
+  # get list of app groups
+  at_groups = list(a_t.keys())
+  # get list of group values
+  at_values = list(a_t.values())
+  # each individual groups' values
+  g_values = []
+  #current row's total
+  row_total = 0
+  # each row's values
+  row_values = []
+  # each row's names
+  row_names = []
+  # smallest num from top 10
+  s_num = 0
+  # get group's number(1:1, etc.)
+  g_num = ""
+  # list of group numbers
+  g_nums = []
+  # all other protocols totals together
+  a_rest = 0
+
+  # for every group...
+  for i in range(len(at_groups)):
+    # get current groups' values
+    g_values = at_values[i]
+
+    # if group doesn't have 10 applications...(11 to skip header)
+    if(len(g_values) <= 11):
+      for j in range(1, len(g_values)):
+        # add sba and nba of each row
+        row_total = g_values[j][1] + g_values[j][7]
+        row_name = g_values[j][0]
+        # add to values and names lists
+        row_values.append(row_total)
+        row_names.append(row_name)
+    else:
+      # take first 10 row of values
+      for s in range(1, 11):
+        # add sba and nba of each row
+        row_total = g_values[s][1] + g_values[s][7]
+        row_name = g_values[s][0]
+        # add to values and names lists
+        row_values.append(row_total)
+        row_names.append(row_name)
+
+      # for each of the remaining rows...
+      for t in range(12, len(g_values)):
+        row_total = g_values[t][1] + g_values[t][7]
+        row_name = g_values[t][0]
+        # get smallest num from top10
+        s_num = min(row_values)
+        if(row_total > s_num):
+          # take index of smallest num 
+          # replace it with the row name and total
+          row_names[row_values.index(s_num)] = row_name
+          row_values[row_values.index(s_num)] = row_total
+          a_rest += s_num
+        else:
+          a_rest += row_total
+    
+    # update dict with names paired with their values
+    for u in range(len(row_names)):
+      gtop10.update({row_names[u]:row_values[u]})
+
+    # sort by greatest to least: https://www.freecodecamp.org/news/sort-dictionary-by-value-in-python/
+    gtop10 = sorted(gtop10.items(), key=lambda x:x[1], reverse=True)
+
+    # add rest of applications to totals
+    gtop10.append(("rest", a_rest))
+
+    atop10.update({at_groups[i]:gtop10})
+    g_num = re.search("[0-9]:[0-9]", at_groups[i])
+    # add found group number to list
+    g_nums.append(g_num.group())
+
+    gtop10 = {}
+    row_names = []
+    row_values = []
+    a_rest = 0
+
+  return atop10, g_nums
+
+at_10, group_nums = get_atop10(a_t)
+
+
+# get top 10 protocol percents
+def get_ppercent(pt_10):
+  # protocol percents
+  pp_list = []
   # each value's percent
   percent = 0.0
   # sum of top 10's values
   sum = 0
   
   # get sum
-  for u in range(len(t_10)):
-    sum += t_10[u][1]
+  for u in range(len(pt_10)):
+    sum += pt_10[u][1]
   
   # get percents
-  for v in range(len(t_10)):
-    percent = round(t_10[v][1]/sum*100, 2)
-    p_list.append(percent)
+  for v in range(len(pt_10)):
+    percent = round(pt_10[v][1]/sum*100, 4)
+    pp_list.append(percent)
   
-  return p_list
+  return pp_list
 
-t_10_p = get_percent(t_10)
+t_10_pp = get_ppercent(pt_10)
 
 
-# get the top10 chart
-def get_chart(t_10_p, t_10):
+# get top 10 application percents
+def get_apercent(at_10):
+  # application percents
+  a_p = {}
+  # list of app groups
+  a_groups = list(at_10.keys())
+  # list of app group values
+  a_values = list(at_10.values())
+  # individual group's values
+  g_values = []
+  # each value's percent
+  percent = 0.0
+  # list of group's percents
+  g_p = []
+  # sum of top 10's values
+  sum = 0
+  
+  # for every group...
+  for i in range(len(a_groups)):
+    # current group's values
+    g_values = a_values[i]
+
+    # get sum
+    for u in range(len(g_values)):
+      sum += g_values[u][1]
+    
+    # get percents
+    for v in range(len(g_values)):
+      percent = round(g_values[v][1]/sum*100, 4)
+      g_p.append(percent)
+
+    # add percents to dict
+    a_p.update({a_groups[i]:g_p})
+    g_p = []
+    sum = 0
+
+  return a_p
+
+t_10_ap = get_apercent(at_10)
+
+
+# get the top10 protocol chart
+def get_pchart(t_10_pp, pt_10):
   # bar chart
   chart = ""
   chart_name = ""
@@ -350,23 +492,72 @@ def get_chart(t_10_p, t_10):
   count = 0
   
   # for every percent
-  for w in range(len(t_10_p)):
+  for w in range(len(t_10_pp)):
     # increment by scale of 5
     for x in range(0, 101, 5):
       # if the % is < x...
-      if(t_10_p[w] < x):
+      if(t_10_pp[w] < x):
         num_stars = count
         break
       # add a star every increment of 5
       count += 1
-    chart_name = t_10[w][0]
+    chart_name = pt_10[w][0]
     # add a bar to the chart
     chart = "*" * num_stars
-    percent = str(t_10_p[w]) + "%"
+    percent = str(t_10_pp[w]) + "%"
     # format chart to be vertically aligned: https://www.geeksforgeeks.org/string-alignment-in-python-f-string/
     # print each row of the chart
     print(f"{chart_name : <20}{chart : >15}{percent : >20}")
     count = 0
+
+
+# get the top10 application chart
+def get_achart(t_10_ap, at_10, group_nums):
+  # bar chart
+  chart = ""
+  chart_name = ""
+  # app groups
+  a_groups = list(t_10_ap.keys())
+  # app percents
+  a_percents = list(t_10_ap.values())
+  # each group's percents
+  g_percents = []
+  # app values(names and values)
+  a_values = list(at_10.values())
+  # each group's values(names and values)
+  g_values = []
+  # num stars to show in bar
+  num_stars = 0
+  # current percent
+  percent = ""
+  # add stars to each bar
+  count = 0
+
+  # for every group...
+  for i in range(len(a_groups)):
+    g_percents = a_percents[i]
+    g_values = a_values[i]
+    # output group on chart
+    print("GROUP", group_nums[i])
+    # for every percent
+    for w in range(len(g_percents)):
+      # increment by scale of 5
+      for x in range(0, 101, 5):
+        # if the % is < x...
+        if(g_percents[w] < x):
+          num_stars = count
+          break
+        # add a star every increment of 5
+        count += 1
+      chart_name = g_values[w][0]
+      # add a bar to the chart
+      chart = "*" * num_stars
+      percent = str(g_percents[w]) + "%"
+      # format chart to be vertically aligned: https://www.geeksforgeeks.org/string-alignment-in-python-f-string/
+      # print each row of the chart
+      print(f"{chart_name : <30}{chart : >20}{percent : >20}")
+      count = 0
+    print("")
 
 
 #command line input using argparse
@@ -380,8 +571,8 @@ parser = argparse.ArgumentParser(description = des)
 # add option without argument: https://stackoverflow.com/questions/5262702/argparse-module-how-to-add-option-without-any-argument
 # adding optional arguments
 parser.add_argument("-p", "--proto", help = "show summarized Protocol data", action = "store_true")
-parser.add_argument("-a", "--app", help = "show summarized Application data by group or total", action = "store_true")
-parser.add_argument("-t10p", "--top10proto",help = "show top 10 ", action = "store_true")
+parser.add_argument("-a <group>", "--app", nargs = "?", help = "show summarized Application data by group or total", action = "append")
+parser.add_argument("-t10 [p or a]", "--top10", nargs = 1, help = "show top 10 Applications or Protocols", action = "append")
 # read arguments from commmand line
 args = parser.parse_args()
 
@@ -391,17 +582,35 @@ if any(vars(args).values()):
     print("PROTOCOL TOTALS")
     print(p_t)
   elif(args.app):
-    print("APPLICATION TOTALS")
-    print(a_t)
-  elif(args.top10proto):
-    print("TOP 10 PROTOCOL TOTALS")
-    print(t_10)
-    print("")
-    print("PERCENTS")
-    print(t_10_p)
-    print("")
-    print("CHART")
-    get_chart(t_10_p, t_10)
+    if(args.app[0] in group_nums):
+      for i in range(len(group_nums)):
+        if(args.app[0] == group_nums[i]):
+          print("GROUP", group_nums[i])
+          print(a_t.get(a_g[i]))
+    else:
+      print("APPLICATION TOTALS")
+      print(a_t)
+  elif(args.top10):
+    print(args.top10)
+    if(args.top10[0][0] == "p"):
+      print("TOP 10 PROTOCOL TOTALS")
+      print(pt_10)
+      print("")
+      print("PERCENTS")
+      print(t_10_pp)
+      print("")
+      print("CHART")
+      get_pchart(t_10_pp, pt_10)
+    elif(args.top10[0][0] == "a"):
+      print("TOP 10 APPLICATION GROUP TOTALS")
+      print(at_10)
+      print("")
+      print("PERCENTS")
+      print(t_10_ap)
+      print("")
+      print("CHART(S)")
+      get_achart(t_10_ap, at_10, group_nums)
+    
 else:
   # print the help menu again
   parser.print_help()
