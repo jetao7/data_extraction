@@ -610,6 +610,12 @@ index_num = 0
 top_num = 0
 # chosen column to sort by
 column = ""
+# list of protocol data types, 1: to skip "name"
+pdata_types = p_t[0][1:]
+# list of app data types 
+adata_types = list(a_t.values())[0][0]
+# chosen data type
+data_type = ""
 # check if given top num is valid
 check_num = True
 # check if there's an error in args order
@@ -636,28 +642,30 @@ if any(vars(args).values()):
   elif(args.top):
     print(args.top)
     # if p or a is last...
-    if((args.top[0][len(args.top[0]) - 1] == "p") or (args.top[0][len(args.top[0]) - 1] == "a")):
+    if((args.top[0][-1] == "p") or (args.top[0][-1] == "a")):
       # if only p or a is passed in...
       if(len(args.top[0]) == 1):
-        index_num = 0
         top_num = 10
         column = "sba + nba"
+        data_type = "sba"
+        check_num = False
 
       # if only p or a and top num/column are passed in...
       elif(len(args.top[0]) == 2):
-        index_num = 1
         # see if arg is an int
         try:
           int(args.top[0][0])
         # if not, must be a column
         except:
           column = args.top[0][0]
+          data_type = column
           top_num = 10
           # don't check if top num valid
           check_num = False
         # otherwise, it's a selected top num, no column
         else:
           column = "sba + nba"
+          data_type = "sba"
 
       # if everything is passed in...
       else:
@@ -666,11 +674,11 @@ if any(vars(args).values()):
           int(args.top[0][0])
         # if not, print order error
         except:
-          print("order error: -top <n> <column> [p or a]")
+          print("arg error: please enter in the following format: -top <n> <column> [p or a]")
           order_error = True
         else:
-          index_num = 2
           column = args.top[0][1]
+          data_type = column
 
       if(order_error == False):
         if(check_num == True):
@@ -683,34 +691,44 @@ if any(vars(args).values()):
             top_num = int(args.top[0][0])
         check_num = True
 
-        if(args.top[0][index_num] == "p"):
-          print("TOP", top_num, "PROTOCOL TOTALS (" + column + ")")
-          p_top = get_ptop(p_t, top_num, column)
-          print(p_top)
-          print("")
-          print("PERCENTS")
-          top_pp = get_ppercent(p_top)
-          print(top_pp)
-          print("")
-          print("CHART")
-          get_pchart(top_pp, p_top)
-        elif(args.top[0][index_num] == "a"):
-          print("TOP", top_num, "APPLICATION GROUP TOTALS (" + column + ")")
-          a_top = get_atop(a_t, top_num, column)
-          print(a_top)
-          print("")
-          print("PERCENTS")
-          top_ap = get_apercent(a_top)
-          print(top_ap)
-          print("")
-          print("CHART(S)")
-          get_achart(top_ap, a_top, group_nums)
+        # check if last arg is a p or a  
+        if(args.top[0][-1] == "p"):
+          if(data_type not in pdata_types):
+            print("valid error: column not in stats")
+          else:
+            print("TOP", top_num, "PROTOCOL TOTALS (" + column + ")")
+            p_top = get_ptop(p_t, top_num, column)
+            print(p_top)
+            print("")
+            print("PERCENTS")
+            top_pp = get_ppercent(p_top)
+            print(top_pp)
+            print("")
+            print("CHART")
+            get_pchart(top_pp, p_top)
+        elif(args.top[0][-1] == "a"):
+          if(data_type not in adata_types):
+            print("valid error: column not in stats")
+          else:
+            print("TOP", top_num, "APPLICATION GROUP TOTALS (" + column + ")")
+            a_top = get_atop(a_t, top_num, column)
+            print(a_top)
+            print("")
+            print("PERCENTS")
+            top_ap = get_apercent(a_top)
+            print(top_ap)
+            print("")
+            print("CHART(S)")
+            get_achart(top_ap, a_top, group_nums)
 
       order_error = False
-      
+
     # if p or a is not in last position...
     else:
-      print("order error: -top <n> <column> [p or a]")
+      if(len(args.top[0]) == 1):
+        print("valid error: please enter p or a")
+      else:
+        print("arg error: please enter in the following format: -top <n> <column> [p or a]")
 
 else:
   # print the help menu again
