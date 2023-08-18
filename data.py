@@ -278,7 +278,7 @@ a_t, a_g, group_nums = get_atotals(a_d)
 
 
 # get top <n> protocal stats
-def get_ptop(p_t, top_num):
+def get_ptop(p_t, top_num, column):
   # top n protocols
   ptop = {}
   #current row's total
@@ -291,11 +291,19 @@ def get_ptop(p_t, top_num):
   s_num = 0
   # all other protocols totals together
   p_rest = 0
+  # the given column's header position
+  c_num = 0
 
   # take first <n> row of values
   for s in range(1, top_num + 1):
-    # add sba and nba of each row
-    row_total = p_t[s][1] + p_t[s][7]
+    # if no column specified...
+    if(column == "sba + nba"):
+      # add sba and nba of each row
+      row_total = p_t[s][1] + p_t[s][7]
+    else:
+      # get column's index from header
+      c_num = p_t[0].index(column)
+      row_total = p_t[s][c_num]
     row_name = p_t[s][0]
     # add to values and names lists
     row_values.append(row_total)
@@ -303,7 +311,13 @@ def get_ptop(p_t, top_num):
 
   # for each of the remaining rows...
   for t in range(top_num + 2, len(p_t)):
-    row_total = p_t[t][1] + p_t[t][7]
+    # if no column specified...
+    if(column == "sba + nba"):
+      row_total = p_t[t][1] + p_t[t][7]
+    else:
+      # get column's index from header
+      c_num = p_t[0].index(column)
+      row_total = p_t[t][c_num]
     row_name = p_t[t][0]
     # get smallest num from top10
     s_num = min(row_values)
@@ -331,7 +345,7 @@ def get_ptop(p_t, top_num):
 
 
 # get top <n> applications
-def get_atop(a_t, top_num):
+def get_atop(a_t, top_num, column):
   # top <n>
   atop = {}
   # current group's top
@@ -360,9 +374,16 @@ def get_atop(a_t, top_num):
 
     # if group doesn't have <n> applications...(+1 to skip header)
     if(len(g_values) <= top_num + 1):
+      # for every application...
       for j in range(1, len(g_values)):
-        # add sba and nba of each row
-        row_total = g_values[j][1] + g_values[j][7]
+        # if no column specified...
+        if(column == "sba + nba"):
+          # add sba and nba of each row
+          row_total = g_values[j][1] + g_values[j][7]
+        else:
+          # get column's index from header
+          c_num = g_values[0].index(column)
+          row_total = g_values[j][c_num]
         row_name = g_values[j][0]
         # add to values and names lists
         row_values.append(row_total)
@@ -370,8 +391,14 @@ def get_atop(a_t, top_num):
     else:
       # take first 10 row of values
       for s in range(1, top_num + 1):
-        # add sba and nba of each row
-        row_total = g_values[s][1] + g_values[s][7]
+        # if no column specified...
+        if(column == "sba + nba"):
+          # add sba and nba of each row
+          row_total = g_values[s][1] + g_values[s][7]
+        else:
+          # get column's index from header
+          c_num = g_values[0].index(column)
+          row_total = g_values[s][c_num]
         row_name = g_values[s][0]
         # add to values and names lists
         row_values.append(row_total)
@@ -379,7 +406,14 @@ def get_atop(a_t, top_num):
 
       # for each of the remaining rows...
       for t in range(12, len(g_values)):
-        row_total = g_values[t][1] + g_values[t][7]
+        # if no column specified...
+        if(column == "sba + nba"):
+          # add sba and nba of each row
+          row_total = g_values[t][1] + g_values[t][7]
+        else:
+          # get column's index from header
+          c_num = g_values[0].index(column)
+          row_total = g_values[t][c_num]
         row_name = g_values[t][0]
         # get smallest num from top10
         s_num = min(row_values)
@@ -473,7 +507,7 @@ def get_apercent(a_top):
 
 
 # get the top10 protocol chart
-def get_pchart(top_pp, p):
+def get_pchart(top_pp, p_top):
   # bar chart
   chart = ""
   chart_name = ""
@@ -494,7 +528,7 @@ def get_pchart(top_pp, p):
         break
       # add a star every increment of 5
       count += 1
-    chart_name = p[w][0]
+    chart_name = p_top[w][0]
     # add a bar to the chart
     chart = "*" * num_stars
     percent = str(top_pp[w]) + "%"
@@ -566,7 +600,7 @@ parser = argparse.ArgumentParser(prog = "ProtoAppWizard", description = des, epi
 # adding optional arguments
 parser.add_argument("-p", "--proto", help = "show summarized Protocol data", action = "store_true")
 parser.add_argument("-a <group>", "--app", nargs = "?", help = "show summarized Application data by group or total", action = "append")
-parser.add_argument("-top <n> [p or a]", "--top", nargs = "+", help = "show top <n> (default = 10) <column> Applications or Protocols", action = "append")
+parser.add_argument("-top <n> <column> [p or a]", "--top", nargs = "+", help = "show top <num> (default = 10) <column> (default = sba + nba) [Applications or Protocols]", action = "append")
 # read arguments from commmand line
 args = parser.parse_args()
 
@@ -574,12 +608,19 @@ args = parser.parse_args()
 index_num = 0
 # chosen top num
 top_num = 0
+# chosen column to sort by
+column = ""
+# check if given top num is valid
+check_num = True
+# check if there's an error in args order
+order_error = False
 
 # if any arguments are passed in
 if any(vars(args).values()):
   if(args.proto):
     print("PROTOCOL TOTALS")
     print(p_t)
+
   elif(args.app):
     # if a group is given...
     if(args.app[0] in group_nums):
@@ -591,49 +632,86 @@ if any(vars(args).values()):
     else:
       print("APPLICATION TOTALS")
       print(a_t)
+
   elif(args.top):
     print(args.top)
-    # if only one arg is passed in...
-    if(len(args.top[0]) == 1):
-      index_num = 0
-      top_num = 10
-    # if only 2 args are passed in
-    else:
-      if(len(args.top[0]) == 2):
-        index_num = 1
-      elif(len(args.top[0]) == 3):
-        index_num = 2
-      # if the top given num is higher than the num of protocols...
-      if((int(args.top[0][0]) > len(p_t) + 1) or (int(args.top[0][0]) < 1)):
-        # set to default
+    # if p or a is last...
+    if((args.top[0][len(args.top[0]) - 1] == "p") or (args.top[0][len(args.top[0]) - 1] == "a")):
+      # if only p or a is passed in...
+      if(len(args.top[0]) == 1):
+        index_num = 0
         top_num = 10
-      else:
-        # get the wanted top num
-        top_num = int(args.top[0][0])
+        column = "sba + nba"
 
-    if(args.top[0][index_num] == "p"):
-      print("TOP", top_num, "PROTOCOL TOTALS")
-      p_top = get_ptop(p_t, top_num)
-      print(p_top)
-      print("")
-      print("PERCENTS")
-      top_pp = get_ppercent(p_top)
-      print(top_pp)
-      print("")
-      print("CHART")
-      get_pchart(top_pp, p_top)
-    elif(args.top[0][index_num] == "a"):
-      print("TOP", top_num, "APPLICATION GROUP TOTALS")
-      a_top = get_atop(a_t, top_num)
-      print(a_top)
-      print("")
-      print("PERCENTS")
-      top_ap = get_apercent(a_top)
-      print(top_ap)
-      print("")
-      print("CHART(S)")
-      get_achart(top_ap, a_top, group_nums)
-    
+      # if only p or a and top num/column are passed in...
+      elif(len(args.top[0]) == 2):
+        index_num = 1
+        # see if arg is an int
+        try:
+          int(args.top[0][0])
+        # if not, must be a column
+        except:
+          column = args.top[0][0]
+          top_num = 10
+          # don't check if top num valid
+          check_num = False
+        # otherwise, it's a selected top num, no column
+        else:
+          column = "sba + nba"
+
+      # if everything is passed in...
+      else:
+        # see if arg is an int
+        try:
+          int(args.top[0][0])
+        # if not, print order error
+        except:
+          print("order error: -top <n> <column> [p or a]")
+          order_error = True
+        else:
+          index_num = 2
+          column = args.top[0][1]
+
+      if(order_error == False):
+        if(check_num == True):
+          # if the top given num is higher than the num of protocols...
+          if((int(args.top[0][0]) > len(p_t) + 1) or (int(args.top[0][0]) < 1)):
+            # set to default
+            top_num = 10
+          else:
+            # get the wanted top num
+            top_num = int(args.top[0][0])
+        check_num = True
+
+        if(args.top[0][index_num] == "p"):
+          print("TOP", top_num, "PROTOCOL TOTALS (" + column + ")")
+          p_top = get_ptop(p_t, top_num, column)
+          print(p_top)
+          print("")
+          print("PERCENTS")
+          top_pp = get_ppercent(p_top)
+          print(top_pp)
+          print("")
+          print("CHART")
+          get_pchart(top_pp, p_top)
+        elif(args.top[0][index_num] == "a"):
+          print("TOP", top_num, "APPLICATION GROUP TOTALS (" + column + ")")
+          a_top = get_atop(a_t, top_num, column)
+          print(a_top)
+          print("")
+          print("PERCENTS")
+          top_ap = get_apercent(a_top)
+          print(top_ap)
+          print("")
+          print("CHART(S)")
+          get_achart(top_ap, a_top, group_nums)
+
+      order_error = False
+      
+    # if p or a is not in last position...
+    else:
+      print("order error: -top <n> <column> [p or a]")
+
 else:
   # print the help menu again
   parser.print_help()
