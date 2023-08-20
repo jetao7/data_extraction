@@ -133,12 +133,9 @@ p_d, a_d = get_data()
 
 # find protocol stats totals
 def get_ptotals(p_d):
-  # dictionary storing protocol totals
-  tp_dict = {}
   p_keys = []
   p_values = []
-  # protocols section's keys and values
-  psec_key = ""
+  # protocols section's values
   psec_values = []
   psec_names = []
   current_name = ""
@@ -154,13 +151,10 @@ def get_ptotals(p_d):
   # protocol stats totals  
   # for every key...
   for i in range(len(p_keys)):
-    psec_key = p_keys[i]
     psec_values = p_values[i]
 
+    # get and save the header
     t_header = psec_values[0]
-    # if 1st time, add header to totals
-    if(i == 0):
-      p_totals.insert(0, t_header)
     # get rid of headers from data
     psec_values.pop(0)
 
@@ -179,13 +173,13 @@ def get_ptotals(p_d):
         for k in range(len(t_header) - 1):
           zeros.append(0)
         zeros.insert(0, current_name)
-        # +1 to skip header
-        p_totals.insert(j+1, zeros)
+        # insert zeros into totals
+        p_totals.insert(j, zeros)
 
       # for each column within the row...
       for l in range(len(psec_values[j]) - 1):
-        # +1 to skip header and name
-        p_totals[j+1][l+1] += int(psec_values[j][l+1])
+        # +1 to skip name
+        p_totals[j][l+1] += int(psec_values[j][l+1])
 
       # if not 1st section and name was missing in prev section...
       if(i != 0) and (current_name not in psec_names):
@@ -193,6 +187,11 @@ def get_ptotals(p_d):
         psec_names.append(current_name)
 
       zeros = []
+
+  # sort by names
+  p_totals.sort(key=lambda x: x[0])
+  # insert the header
+  p_totals.insert(0, t_header)
 
   return p_totals
 
