@@ -128,8 +128,6 @@ def get_data():
   return p_dict, a_dict
 
 p_d, a_d = get_data()
-# print(p_d)
-# print(a_d)
 
 # find protocol stats totals
 def get_ptotals(p_d):
@@ -188,7 +186,7 @@ def get_ptotals(p_d):
 
       zeros = []
 
-  # sort by names
+  # sort by names: https://stackoverflow.com/questions/21068315/python-sort-by-first-element-of-list
   p_totals.sort(key=lambda x: x[0])
   # insert the header
   p_totals.insert(0, t_header)
@@ -230,9 +228,6 @@ def get_atotals(a_d):
       a_groupvalues = list(a_keygroups.values())[m]
 
       t_header = a_groupvalues[0]
-      if(n == 0):
-        # add header to totals
-        a_totals.insert(0, t_header)
       # get rid of headers from data
       a_groupvalues.pop(0)
 
@@ -250,12 +245,12 @@ def get_atotals(a_d):
             zeros.append(0)
           zeros.insert(0, current_name)
           # +1 to skip the header
-          a_totals.insert(q+1, zeros)
+          a_totals.insert(q, zeros)
         
         # for every piece of data within the row...
         for r in range(len(a_groupvalues[q]) - 1):
           # +1 to skip header and names
-          a_totals[q+1][r+1] += int(a_groupvalues[q][r+1])
+          a_totals[q][r+1] += int(a_groupvalues[q][r+1])
         
         # if not 1st key and name was missing...
         if(n != 0) and (current_name not in asec_names):
@@ -268,9 +263,15 @@ def get_atotals(a_d):
     # add found group number to list
     g_nums.append(g_num.group())
 
+    # sort by names: https://stackoverflow.com/questions/21068315/python-sort-by-first-element-of-list
+    a_totals.sort(key=lambda y: y[0])
+    # add header to totals
+    a_totals.insert(0, t_header)
+
     ta_dict.update({a_groupkey:a_totals})
     a_totals = []
 
+  print(ta_dict)
   return ta_dict, a_groups, g_nums
 
 a_t, a_g, group_nums = get_atotals(a_d)
