@@ -6,10 +6,6 @@ import argparse
 
 # open file https://www.w3schools.com/python/python_file_open.asp (file reading also from this source)
 f = open("sample_mda_autoreboot_2_20052021.ts.txt", "r")
-# f = open("comcast_multiple_esavms.txt", "r")
-# open new file to write https://python-adv-web-apps.readthedocs.io/en/latest/csv.html#:~:text=files%20with%20Python.-,The%20csv%20module%20in%20Python,any%20script%20that%20uses%20it.&text=Note%20that%20using%20methods%20from,Reading%20and%20Writing%20Files%20here.
-csvfile = open('protocol_statistics.csv', 'w', newline='', encoding='utf-8')
-c = csv.writer(csvfile)
 
 
 # collect and store data from file
@@ -83,8 +79,6 @@ def get_data():
           data_sec.insert(0, data_line)
           # get rid of extra item in list
           data_sec.pop()
-          # write on the CSV file
-          c.writerow(data_line)
           rows += 1
           start = True
 
@@ -106,8 +100,6 @@ def get_data():
             # if no new key found, update by original key
             else:
               p_dict.update({o_key:data_sec})
-          # separate data in csv file
-          c.writerow("")
           find_new_key = True
           start = False
 
@@ -122,7 +114,6 @@ def get_data():
           data_line = line.split(",")
           # add line of data to array
           data_sec.insert(rows, data_line)
-          c.writerow(data_line)
           rows += 1
 
   return p_dict, a_dict
@@ -198,6 +189,7 @@ p_t = get_ptotals(p_d)
 
 # find application stats totals
 def get_atotals(a_d):
+
   # dictionary storing application totals
   ta_dict = {}
   # list of each keys' groups with their data sections
@@ -271,7 +263,7 @@ def get_atotals(a_d):
     ta_dict.update({a_groupkey:a_totals})
     a_totals = []
 
-  print(ta_dict)
+
   return ta_dict, a_groups, g_nums
 
 a_t, a_g, group_nums = get_atotals(a_d)
@@ -610,10 +602,12 @@ index_num = 0
 top_num = 0
 # chosen column to sort by
 column = ""
+# list of all app groups' values
+a_tvalues = list(a_t.values())
 # list of protocol data types, 1: to skip "name"
 pdata_types = p_t[0][1:]
 # list of app data types 
-adata_types = list(a_t.values())[0][0]
+adata_types = a_tvalues[0][0]
 # chosen data type
 data_type = ""
 # check if given top num is valid
@@ -621,11 +615,21 @@ check_num = True
 # check if there's an error in args order
 order_error = False
 
+# csv file writing
+# open new file to write https://python-adv-web-apps.readthedocs.io/en/latest/csv.html#:~:text=files%20with%20Python.-,The%20csv%20module%20in%20Python,any%20script%20that%20uses%20it.&text=Note%20that%20using%20methods%20from,Reading%20and%20Writing%20Files%20here.
+csvfile = open('proto_app_stats.csv', 'w', newline='', encoding='utf-8')
+c = csv.writer(csvfile)
+
 # if any arguments are passed in
 if any(vars(args).values()):
   if(args.proto):
     print("PROTOCOL TOTALS")
     print(p_t)
+
+    c.writerow(["Name", "Protocol Totals"])
+    for i in range(1, len(p_t)):
+      c.writerow(p_t[i])
+    c.writerow("")
 
   elif(args.app):
     # if a group is given...
@@ -633,14 +637,23 @@ if any(vars(args).values()):
       for i in range(len(group_nums)):
         if(args.app[0] == group_nums[i]):
           print("GROUP", group_nums[i])
-          # print an get the applicaition total of the specified key/group
+          # print and get the applicaition totals of the specified key/group
           print(a_t.get(a_g[i]))
+          for j in range(len(a_t.get(a_g[i]))):
+            c.writerow(a_t.get(a_g[i])[j])
     else:
       print("APPLICATION TOTALS")
-      print(a_t)
+      print(a_t)  
+
+    # for every group...
+    for k in range(len(a_t.keys())):
+      c.writerow(["Name", "App totals from " + list(a_t.keys())[k]])
+      # for every groups' values...
+      for l in range(1, len(a_tvalues[k])):
+        c.writerow(a_tvalues[k][l])
+      c.writerow("")
 
   elif(args.top):
-    print(args.top)
     # if p or a is last...
     if((args.top[0][-1] == "p") or (args.top[0][-1] == "a")):
       # if only p or a is passed in...
@@ -706,6 +719,11 @@ if any(vars(args).values()):
             print("")
             print("CHART")
             get_pchart(top_pp, p_top)
+
+            c.writerow(["Name", "Top " + str(top_num) + " Protocol Totals (" + column + ")"])
+            for m in range(len(p_top)):
+              c.writerow(p_top[m])
+
         elif(args.top[0][-1] == "a"):
           if(data_type not in adata_types):
             print("valid error: column not in stats")
@@ -720,6 +738,16 @@ if any(vars(args).values()):
             print("")
             print("CHART(S)")
             get_achart(top_ap, a_top, group_nums)
+            
+            a_topvalues = list(a_top.values())
+            # for every group...
+            for n in range(len(a_top.keys())):
+              c.writerow(["Name", "Top " + str(top_num) + " Application Totals (" + column + ") " + list(a_top.keys())[n]])
+              # for every groups' values...
+              for o in range(len(a_topvalues[n])):
+                # write each pair of values
+                c.writerow(a_topvalues[n][o])
+              c.writerow("")
 
       order_error = False
 
