@@ -1,4 +1,4 @@
-Name,Top 10 Application Totals (sba + nba) group 1:1
+Name,Top 15 Application Totals (sba + nba) group 1:1
 Unknown,128591232967336
 Arogya-Setu-Zero-rate,435292380062
 OpenVPN_App,48032239201
@@ -7,7 +7,7 @@ Internet_RG23_CG_App,2803044519
 Internet_RG2_HE_CG_App,2598374458
 rest,0
 
-Name,Top 10 Application Totals (sba + nba) group 1:2
+Name,Top 15 Application Totals (sba + nba) group 1:2
 YouTube,5167723161168
 Whats App,4360843642040
 TLS,3442464037677
@@ -18,5 +18,10 @@ Unidentified UDP,924533238794
 AppFilterMiss,910252256166
 HTTPS,538402383710
 QUIC,512269764676
-rest,3122817057526
+Google Play Store,452054600724
+Advertising Statistics,420130499782
+RTP,300055637403
+HTTP Video,285572098267
+Unidentified TCP,235329575474
+rest,1430411200101
 

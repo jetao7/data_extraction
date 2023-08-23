@@ -196,8 +196,13 @@ def get_atotals(a_d):
   a_keys = list(a_d.values())
   # take 1st keys' groups to find num of groups 
   a_keygroups = a_keys[0]
-  a_groups = list(a_keygroups.keys())
   num_groups = len(a_keygroups)
+  # get list of all groups
+  a_groups = list(a_keygroups.keys())
+  # an individual group
+  a_groupkey = []
+  # the individual's group's values
+  a_groupvalues = []
   asec_names = []
   current_name = ""
   zeros = []
@@ -228,6 +233,7 @@ def get_atotals(a_d):
         current_name = a_groupvalues[q][0]
         # if looping through 1st key
         if(n == 0):
+          # initialize list of found names
           asec_names.append(current_name)
 
         if(n == 0) or (current_name not in asec_names):
@@ -251,6 +257,7 @@ def get_atotals(a_d):
 
         zeros = []
 
+    # get just the num:num of the group
     g_num = re.search("[0-9]:[0-9]", a_groups[m])
     # add found group number to list
     g_nums.append(g_num.group())
@@ -450,10 +457,13 @@ def get_ppercent(p_top):
   # get sum
   for u in range(len(p_top)):
     sum += p_top[u][1]
-  
+
   # get percents
   for v in range(len(p_top)):
-    percent = round(p_top[v][1]/sum*100, 4)
+    if(sum == 0):
+      percent = 0.0000
+    else:
+      percent = round(p_top[v][1]/sum*100, 4)
     pp_list.append(percent)
   
   return pp_list
@@ -487,7 +497,10 @@ def get_apercent(a_top):
     
     # get percents
     for v in range(len(g_values)):
-      percent = round(g_values[v][1]/sum*100, 4)
+      if(sum == 0):
+        percent = 0.0000
+      else:
+        percent = round(g_values[v][1]/sum*100, 4)
       g_p.append(percent)
 
     # add percents to dict
@@ -608,7 +621,7 @@ a_tvalues = list(a_t.values())
 pdata_types = p_t[0][1:]
 # list of app data types 
 adata_types = a_tvalues[0][0]
-# chosen data type
+# chosen data type (used to check if data is in the header)
 data_type = ""
 # check if given top num is valid
 check_num = True
@@ -626,6 +639,7 @@ if any(vars(args).values()):
     print("PROTOCOL TOTALS")
     print(p_t)
 
+
     c.writerow(["Name", "Protocol Totals"])
     for i in range(1, len(p_t)):
       c.writerow(p_t[i])
@@ -639,19 +653,20 @@ if any(vars(args).values()):
           print("GROUP", group_nums[i])
           # print and get the applicaition totals of the specified key/group
           print(a_t.get(a_g[i]))
+          c.writerow(["Name", "App totals from " + a_g[i]])
+          # for every row of values in the specified group.
           for j in range(len(a_t.get(a_g[i]))):
             c.writerow(a_t.get(a_g[i])[j])
     else:
       print("APPLICATION TOTALS")
       print(a_t)  
-
-    # for every group...
-    for k in range(len(a_t.keys())):
-      c.writerow(["Name", "App totals from " + list(a_t.keys())[k]])
-      # for every groups' values...
-      for l in range(1, len(a_tvalues[k])):
-        c.writerow(a_tvalues[k][l])
-      c.writerow("")
+      # for every group...
+      for k in range(len(a_t.keys())):
+        c.writerow(["Name", "App totals from " + list(a_t.keys())[k]])
+        # for every groups' values...
+        for l in range(1, len(a_tvalues[k])):
+          c.writerow(a_tvalues[k][l])
+        c.writerow("")
 
   elif(args.top):
     # if p or a is last...
